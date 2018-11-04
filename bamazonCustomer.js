@@ -16,6 +16,8 @@ var connection = mysql.createConnection({
   database: "bamazon"
 });
 
+
+
 // connect to the mysql server and sql database
 connection.connect(function(err) {
     if (err) throw err;
@@ -55,26 +57,43 @@ connection.connect(function(err) {
       ])
 
       .then(function(answer) {
-        var itemBought = answer.id;
-        var amountBought = answer.quantity;
+        var itemBought = answer.item;
+        var amountBought = answer.amount;
         connection.query(
-          "SELECT * FROM products WHERE ?",
+          "SELECT * FROM products WHERE ?", 
           {
             id: itemBought,
 
           },
-          
-          console.log("purchase successful!")
+          function(err,res) {
+            console.log(res);
+            if (res[0].quantity > amountBought) {
+             console.log("Thank you for your purchase! Your total is: $" + amountBought * res[0].price)  
+             // connect query update products set quantity = where id equals item bought  
+            //  connection.query("UPDATE products SET ?
+            var query = "UPDATE products SET quantity = quantity - amountBought ? WHERE itemBought = ?";
+            connection.query(query, [amountBought, itemBought], function(err, res) {
+            });
+           
+            }
+           else {
+             console.log("You've chosen a popular product, please try purchasing a reduced amount")
+           }
+          }
+         
         );
       });
 
+
   }
+// var stuff;
 
   function inventory() {
     connection.query("SELECT * FROM products", function(err, res) {
         if (err) throw err;
+        stuff = res;
         for (var i = 0; i < res.length; i++) {
-            console.log("Item Id: " + res[i].id + " || Name: " + res[i].product + " || Department: " + res[i].dept + " || Price: " + res[i].price + " || Available: " + res[i].quantity);
+            console.log("Item Id: " + res[i].id + " || Name: " + res[i].product + " || Department: " + res[i].dept + " || Price: $" + res[i].price + " || Available: " + res[i].quantity);
         };
     });
 
